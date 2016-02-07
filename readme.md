@@ -7,7 +7,7 @@ This module makes managing user access to different parts of application easier.
 
 1. Run
    ```php   
-       composer require mnabialek/laravel-authorize
+   composer require mnabialek/laravel-authorize
    ```     
    in console to install this module
    
