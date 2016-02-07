@@ -1,0 +1,115 @@
+<?php
+
+namespace Mnabialek\LaravelAuthorize\Services;
+
+use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Logging\Log;
+use Mnabialek\LaravelAuthorize\Contracts\Permissionable;
+use Mnabialek\LaravelAuthorize\Contracts\PermissionHandler;
+use Mnabialek\LaravelAuthorize\Contracts\Roleable;
+
+class Permission implements Permissionable
+{
+    /**
+     * @var PermissionHandler
+     */
+    protected $handler;
+
+    /**
+     * @var Config
+     */
+    protected $config;
+
+    /**
+     * @var Log
+     */
+    protected $log;
+
+    /**
+     * PermissionService constructor.
+     *
+     * @param PermissionHandler $handler
+     * @param Log $log
+     * @param Config $config
+     */
+    public function __construct(
+        PermissionHandler $handler,
+        Log $log,
+        Config $config
+    ) {
+        $this->handler = $handler;
+        $this->config = $config;
+        $this->log = $log;
+    }
+
+    /**
+     * Verify if resource has all given permissions (alias for canAll)
+     *
+     * @param Roleable $resource
+     * @param string|array $permissions
+     *
+     * @return bool
+     */
+    public function can(Roleable $resource, $permissions)
+    {
+        return $this->canAll($resource, $permissions);
+    }
+
+    /**
+     * Verify if resource has all given permissions
+     *
+     * @param Roleable $resource
+     * @param string|array $permissions
+     *
+     * @return bool
+     */
+    public function canAll(Roleable $resource, $permissions)
+    {
+        $permissions = (array)$permissions;
+
+        $resourcePermissions = $this->getPermissions($resource);
+
+        foreach ($permissions as $permission) {
+            if (!in_array($permission, $resourcePermissions)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Verify if resource has any given permission
+     *
+     * @param Roleable $resource
+     * @param string|array $permissions
+     *
+     * @return bool
+     */
+    public function canAny(Roleable $resource, $permissions)
+    {
+        $permissions = (array)$permissions;
+
+        $resourcePermissions = $this->getPermissions($resource);
+
+        foreach ($permissions as $permission) {
+            if (in_array($permission, $resourcePermissions)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get resource permissions
+     *
+     * @param Roleable $resource
+     *
+     * @return array
+     */
+    public function getPermissions(Roleable $resource)
+    {
+        return $this->handler->getPermissions($resource);
+    }
+}

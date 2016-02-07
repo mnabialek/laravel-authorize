@@ -1,8 +1,9 @@
 {
     "name": "mnabialek/laravel-authorize",
-    "description": "Allows authorize user",
+    "description": "Allows authorize user based on role or permission",
+    "keywords": ["laravel", "authorize", "authorization", "role","permission"],    
     "require": {
-        "laravel/framework": "5.2.*"
+        "laravel/framework": "5.1.*"
     },
     "license": "MIT",
     "authors": [
@@ -11,5 +12,9 @@
             "email": "gitre@nabialek.org"
         }
     ],
-    "minimum-stability": "dev"
+    "autoload": {
+        "psr-4": {
+            "Mnabialek\\LaravelAuthorize\\": "src/"
+        }
+    }
 }
