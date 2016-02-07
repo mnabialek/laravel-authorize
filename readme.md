@@ -105,55 +105,55 @@ Let's assume we have controller `UserController` with default REST actions - `in
    
 First, we need to open `app\Providers\AuthServiceProvider.php` and add policy mapping for our controller in `$policies` property:
    
-    ```php   
-    \App\Http\Controllers\UserController::class => \App\Policies\UserControllerPolicy::class,
-    ```
+```php
+\App\Http\Controllers\UserController::class => \App\Policies\UserControllerPolicy::class,
+```
     
 Now, let's create Policy class in `app/Policies/UserControllerPolicy.php` file with the following definition    
    
-    ```php   
-    <?php
-    
-    namespace App\Policies;
-    
-    class UserControllerPolicy extends BasePolicy
-    {
-        protected $group = 'user';
-    }
-    ```
+```php   
+<?php
+
+namespace App\Policies;
+
+class UserControllerPolicy extends BasePolicy
+{
+  protected $group = 'user';
+}
+```
   
 Now, you need to open `config/authorize.php` and in section `all` in `permissions` you will add permissions you need to use in order to protect each controller method. By default permissions are in format `$group . controller method`. We defined in `UserControllerPolicy` group as `user` and in our controller we have the following methods:  `index`, `show`, `create`, `store`, `edit`, `update`, `destroy`, so our permissions should be default look like this:
     
-     ```php
-     'user.index',
-     'user.show',
-     'user.create',
-     'user.store',
-     'user.edit',
-     'user.update',
-     'user.destroy',
-     ```
+```php
+'user.index',
+'user.show',
+'user.create',
+'user.store',
+'user.edit',
+'user.update',
+'user.destroy',
+```
      
 But in fact in most cases you don't need permission for `create` at all. User should be able to run `create` method of controller only if they have permission to run `store` method. Same would apply to `edit` - it they should be able to run `edit` only if they have permission to run `update` (this behaviour can be modified - see `Customization`), so let's add into those section only below permissions:
      
-     ```php
-     'user.index',
-     'user.show',
-     'user.store',
-     'user.update',
-     'user.destroy',
-     ```
+```php
+'user.index',
+'user.show',
+'user.store',
+'user.update',
+'user.destroy',
+```
      
 Now, it's time to set those permissions for different roles. In section `roles` in `permissions` you have some example roles. You should put here roles that match your system roles names and assign to them any of those permissions. For `admin` user usually you want to allow everything, so you can add only `*` as permission and it means, that role `admin` will have all permissions defined in `all` section.         
 
 Now make sure, you apply `authorize` middleware to `UserController` in your routes.php for example this way:
 
-    ```php
-    Route::group(['middleware' => ['authorize']],
-        function () {        
-            Route::resource('users', 'UserController');
-        });
-    ```
+```php
+Route::group(['middleware' => ['authorize']],
+  function () {        
+      Route::resource('users', 'UserController');
+  });
+```
 and that's it! You've protected your first controller with `authorize` middleware.
        
 If you want to protect another controller, just repeat those steps. You need to of course make sure you set `$group` property in your new policy class to unique value.
@@ -171,29 +171,29 @@ Default flow for authorization verification looks like this:
 
 Let's assume we have route like this:
 
-    ```php
-    Route::show('/users/{users}/{type}', 'UserController@show')
-    ```
+```php
+Route::show('/users/{users}/{type}', 'UserController@show')
+```
     
 and we would like to allow displaying all users only for admin role, and for others we would like to to allow displaying only their own account.
     
 we could have registered in `RouteServiceProvider.php` the following route model binding:
      
-     ```php
-    $router->model('users', 'App\User');
-    ```
+```php
+$router->model('users', 'App\User');
+```
     
 So, now in our `UserControllerPolicy` class we could create the following method:
     
-    ```php
-    public function show($user, $displayedUser, $type)
-    {
-        if ($displayedUser->id == $user->id) {
-            return true;
-        }
-        return false;
-    }
-    ````
+```php
+public function show($user, $displayedUser, $type)
+{
+  if ($displayedUser->id == $user->id) {
+      return true;
+  }
+  return false;
+}
+```
     
 And now this extra method will be used after verification if user has `user.show` permission.
     
@@ -205,12 +205,12 @@ By default, all `create` and `edit` abilities will be automatically replaced by 
 
 Also in some cases it could happen that for methods in 2 different controller you would like to use same permission. Then you could in one of your Policy classes, create custom `getPermissionMappings` method, for example:
 
-    ```php
-    protected function getPermissionMappings()
-    {
-        return ['store' => 'somethingelse.store];
-    }
-    ```
+```php
+protected function getPermissionMappings()
+{
+  return ['store' => 'somethingelse.store];
+}
+```
     
 and that's way you could use permission not base on `group` assigned to current Policy class.    
 
