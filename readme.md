@@ -44,7 +44,9 @@ This module makes managing user access to different parts of application easier.
 
 6. Open your `User.php` model file and add
 
-    `use Mnabialek\LaravelAuthorize\Contracts\Roleable as RoleableContract;`
+    ```php
+    use Mnabialek\LaravelAuthorize\Contracts\Roleable as RoleableContract;`
+    ```
     
     before class definition and make `User` class implement this interface, so it should look like this 
     
@@ -57,7 +59,7 @@ This module makes managing user access to different parts of application easier.
 7. Make sure your `User` class implements `Roleable` Contract. In order to do that, you need to implement 2 methods: `hasRole` and `getRoles`.  To simplify this, you can use default `Roleable` Trait. Just put inside your `User` class:
    
     ```php
-    use Mnabialek\LaravelAuthorize\Traits\Roleable;
+    use \Mnabialek\LaravelAuthorize\Traits\Roleable;
     ```
     
     Be aware this trait assumes you have `role` property for `User` model (what is equal that you have `role` column in your `users` table in database that hold your role name). In many cases it won't be true, so you need to override at least `getRoles` method to get valid user roles. Assuming you have one to many `role` relationship (user is only assigned to single role), custom implementation could look like this:
