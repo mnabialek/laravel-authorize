@@ -1,7 +1,9 @@
 Laravel Authorize
 ===
 
-This module makes managing user access to different parts of application easier. You can protect your routes with `authorize` middleware based on **user roles or user permissions** without adding any extra code to your controller to keep them as clean as no authorization were used at all.
+This module makes managing user access to different parts of **Laravel** applications easier. You can protect your routes with `authorize` middleware based on **user roles or user permissions** without adding any extra code to your controller to keep them as clean as no authorization were used at all.
+
+You can use this module in applications using **Laravel** framework in version **>=5.1**.
 
 ## Installation
 
