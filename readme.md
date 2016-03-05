@@ -45,7 +45,7 @@ This module makes managing user access to different parts of application easier.
 6. Open your `User.php` model file and add
 
     ```php
-    use Mnabialek\LaravelAuthorize\Contracts\Roleable as RoleableContract;`
+    use Mnabialek\LaravelAuthorize\Contracts\Roleable as RoleableContract;
     ```
     
     before class definition and make `User` class implement this interface, so it should look like this 
