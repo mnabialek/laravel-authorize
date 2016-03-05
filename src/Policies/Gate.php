@@ -2,6 +2,8 @@
 
 namespace Mnabialek\LaravelAuthorize\Policies;
 
+use Illuminate\Support\Str;
+
 class Gate extends \Illuminate\Auth\Access\Gate
 {
     /**

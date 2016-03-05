@@ -40,8 +40,8 @@ class Authorize extends ServiceProvider
                 app_path('Http/Middleware/Authorize.php'),
             __DIR__ . '/../../publish/views/401.blade.php' =>
                 resource_path('views/errors/401.blade.php'),
-            __DIR__ . '/../../publish/Policies/BasePolicy.php' =>
-                app_path('Policies/BasePolicy.php'),
+            __DIR__ . '/../../publish/Policies/BasePolicyController.php' =>
+                app_path('Policies/BasePolicyController.php'),
         ];
     }
 }

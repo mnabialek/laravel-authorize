@@ -24,7 +24,7 @@ return [
          * up-to-date. Format of those permissions is:
          * name of group in your Policy class . controller method name
          */
-        'all' => [
+        'available' => [
             'sample.store', // you can remove this - this is only sample permission
         ],
 

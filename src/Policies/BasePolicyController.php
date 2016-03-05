@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Mnabialek\LaravelAuthorize\Contracts\Permissionable;
 use Mnabialek\LaravelAuthorize\Contracts\Roleable;
 
-class BasePolicy
+class BasePolicyController
 {
     /**
      * @var Permissionable
@@ -36,7 +36,7 @@ class BasePolicy
     protected $request;
 
     /**
-     * BasePolicy constructor.
+     * BasePolicyController constructor.
      *
      * @param Log $log
      * @param Config $config

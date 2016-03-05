@@ -35,7 +35,7 @@ This module makes managing user access to different parts of application easier.
 4. In `app/Http/Kernel.php` in `$routeMiddleware` add:
     
     ```php
-     'authorize' => \App\Http\Middleware\Authorize::class,
+    'authorize' => \App\Http\Middleware\Authorize::class,
     ```    
     
     to register `Authorize` middleware
@@ -67,13 +67,7 @@ This module makes managing user access to different parts of application easier.
     ```php
     public function getRoles()
     {
-        $roles = [];
-        
-        if ($this->role) {
-            $roles[] = $this->role->slug;
-        }
-        
-        return $roles;
+        return $this->role ? [$this->role->slug]: [];
     }
     ```
     
@@ -84,17 +78,17 @@ This module makes managing user access to different parts of application easier.
 
 This module allows you to protect your routes with `authorize` middleware. You have 2 ways to use this middleware (you can use both in same application) - either based on `roles` or based on `permissions`
 
-### Role based authorization 
+### 1. Role based authorization 
 
 You can specify middleware with arguments for example `authorize:manager,employee` - in this case only user role will be verified. In this example if user has any role `manager` or `employee` they will be allowed to access route, otherwise they won't be allowed to do that. However in above example also users with `super_roles` will be allowed to do this (`super_roles` in `config/authorize.php`). So if you define in `super_roles` also `admin`, also users with `admin` role will be allowed to access this route so you don't need to specify `admin` role in case you specify other roles (but of course you can do this if you want). 
 
 Nothing more needs to be configured to use this mode.
 
-### Permission based authorization
+### 2. Permission based authorization
 
-**In this option, you cannot use closures in your routes. Make sure you don't use them in your routes or you'll get exception when applying `authorize` middleware**
+**In this option, you cannot use closures in routes protected by `authorize` middleware. Make sure you don't use them in those routes or you'll get exception when applying `authorize` middleware**
 
-If you use middleware without any arguments for example `authorize`, it will take advantage of [Laravel authorization](https://laravel.com/docs/5.1/authorization) with some extra changes to this mechanism. By default Laravel suggests creating policies for Models but it might be more reasonable in some cases to use policies for controllers and that's what this module does.
+If you use middleware without any arguments for example `authorize`, it will take advantage of [Laravel authorization](https://laravel.com/docs/5.2/authorization) with some extra changes to this mechanism. By default Laravel suggests creating policies for Models but it might be more reasonable in some cases to use policies for controllers and that's what this module does.
 
 #### Configuration
 
@@ -118,13 +112,13 @@ Now, let's create Policy class in `app/Policies/UserControllerPolicy.php` file w
 
 namespace App\Policies;
 
-class UserControllerPolicy extends BasePolicy
+class UserControllerPolicy extends BasePolicyController
 {
   protected $group = 'user';
 }
 ```
   
-Now, you need to open `config/authorize.php` and in section `all` in `permissions` you will add permissions you need to use in order to protect each controller method. By default permissions are in format `$group . controller method`. We defined in `UserControllerPolicy` group as `user` and in our controller we have the following methods:  `index`, `show`, `create`, `store`, `edit`, `update`, `destroy`, so our permissions should be default look like this:
+Now, you need to open `config/authorize.php` and in section `available` in `permissions` you will add permissions you need to use in order to protect each controller method. By default permissions are in format `$group . controller method`. We defined in `UserControllerPolicy` group as `user` and in our controller we have the following methods:  `index`, `show`, `create`, `store`, `edit`, `update`, `destroy`, so our permissions should by default look like this:
     
 ```php
 'user.index',
@@ -136,7 +130,7 @@ Now, you need to open `config/authorize.php` and in section `all` in `permission
 'user.destroy',
 ```
      
-But in fact in most cases you don't need permission for `create` at all. User should be able to run `create` method of controller only if they have permission to run `store` method. Same would apply to `edit` - it they should be able to run `edit` only if they have permission to run `update` (this behaviour can be modified - see `Customization`), so let's add into those section only below permissions:
+But in fact in most cases you don't need permission for `create` at all. User should be able to run `create` method of controller only if they have permission to run `store` method. Same would apply to `edit` - they should be able to run `edit` only if they have permission to run `update` (this behaviour can be modified - see `Customization`), so let's add into those section only below permissions:
      
 ```php
 'user.index',
@@ -146,7 +140,7 @@ But in fact in most cases you don't need permission for `create` at all. User sh
 'user.destroy',
 ```
      
-Now, it's time to set those permissions for different roles. In section `roles` in `permissions` you have some example roles. You should put here roles that match your system roles names and assign to them any of those permissions. For `admin` user usually you want to allow everything, so you can add only `*` as permission and it means, that role `admin` will have all permissions defined in `all` section.         
+Now, it's time to set those permissions for different roles. In section `roles` in `permissions` you have some example roles. You should put here roles that match your system roles names and assign to them any of those permissions. For `admin` user usually you want to allow everything, so you can add only `*` as permission and it means, that role `admin` will have all permissions defined in `available` section.         
 
 Now make sure, you apply `authorize` middleware to `UserController` in your routes.php for example this way:
 
@@ -168,7 +162,7 @@ Default flow for authorization verification looks like this:
 
 - if user has super role (you can configure them in `super_roles` section in `config/authorize.php`) it will have permission for anything and no custom methods will be run
 - if user does not have necessary permission, no further checks will be made
-- if user has necessary permission, we verify if there are custom method in Policy for ability. If there's not, user will be allowed to run this action
+- if user has necessary permission, we verify if there are custom method in Policy for ability (the method name should match the method name from controller). If there's not, user will be allowed to run this action
 - however if there is custom method in Policy for ability, whether user can run this action or not will depend on result of custom method for this ability.
 
 Let's assume we have route like this:
@@ -197,13 +191,13 @@ public function show($user, $displayedUser, $type)
 }
 ```
     
-And now this extra method will be used after verification if user has `user.show` permission.
+And now this extra method will be used after verification if user has `user.show` permission. Because in above case we assume we have admin role in `super_roles` that's it what we need to use here.
     
 Of course, in addition, you could use here also `$type` parameter or also request parameters (in case they should affect authorization) using `getRequest()` method or using property `$request` directly.    
  
 ## Customization
 
-By default, all `create` and `edit` abilities will be automatically replaced by `store` and `update` because in most cases this will be desired behaviour. However, if you don't want to use it this way or you want to create custom ability mappings, just open `app/Policies/BasePolicy` class and create custom `getAbilityMappings` method. Of course you could do it also in single Policy class for example `UserControllerPolicy`
+By default, all `create` and `edit` abilities will be automatically replaced by `store` and `update` because in most cases this will be desired behaviour. However, if you don't want to use it this way or you want to create custom ability mappings, just open `app/Policies/BasePolicyController` class and create custom `getAbilityMappings` method. Of course you could do it also in single Policy class for example `UserControllerPolicy` if you want to.
 
 Also in some cases it could happen that for methods in 2 different controller you would like to use same permission. Then you could in one of your Policy classes, create custom `getPermissionMappings` method, for example:
 
@@ -214,8 +208,7 @@ protected function getPermissionMappings()
 }
 ```
     
-and that's way you could use permission not base on `group` assigned to current Policy class.    
-
+and this way you could use permission not base on `group` assigned to current Policy class.
 
 ### Advanced customization
 
