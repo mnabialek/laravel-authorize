@@ -15,9 +15,11 @@ You can use this module in applications using **Laravel** framework in version *
    
 2. Open `config/app.php` and: 
   * Comment line with
-        ```php
-        Illuminate\Auth\AuthServiceProvider::class,
-        ```
+  
+       ```php
+       Illuminate\Auth\AuthServiceProvider::class,
+       ```
+        
    * Add
     
        ```php
@@ -223,6 +225,6 @@ But in some cases you might want to override default implementation or create cu
  
 So if you want create custom implementation, just implement any of those 2 interfaces and in `config/authorize.php` in `bindings` section set your custom bindings for those interfaces. 
 
-### Licence
+## Licence
 
 This package is licenced under the [MIT license](http://opensource.org/licenses/MIT)
