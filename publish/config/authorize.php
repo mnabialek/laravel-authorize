@@ -58,8 +58,8 @@ return [
              * Below you can specify any other roles permissions
              */
             'user' => [
-                'sample.store',
                 // you can remove this - this is only sample permission
+                'sample.store',
             ],
         ],
     ],
