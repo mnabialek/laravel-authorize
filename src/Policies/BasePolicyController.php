@@ -60,18 +60,18 @@ class BasePolicyController
      * returned this will indicate whether user has (or not) access for given
      * resource
      *
-     * @param Roleable $user
+     * @param Roleable|null $user
      * @param string $ability
      *
      * @return bool|null
      * @throws \Exception
      */
-    public function before(Roleable $user, $ability)
+    public function before(Roleable $user = null, $ability)
     {
         // for super roles we will always allow everything no matter what
         // specific permissions are defined later
         $superRoles = $this->getSuperRoles();
-        if ($superRoles && $user->hasRole($superRoles)) {
+        if ($superRoles && $user && $user->hasRole($superRoles)) {
             return true;
         }
 

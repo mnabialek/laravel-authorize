@@ -42,13 +42,15 @@ class ConfigPermissionHandler implements PermissionHandler
     /**
      * Get list of all permissions that user has
      *
-     * @param Roleable $resource
+     * @param Roleable|null $resource
      *
      * @return array
      */
-    public function getPermissions(Roleable $resource)
+    public function getPermissions(Roleable $resource = null)
     {
-        $userRoles = (array)$resource->getRoles();
+        // if user is not logged we will assign to it guest role
+        $userRoles = $resource ? (array)$resource->getRoles() :
+            [$this->config->get('authorize.guest_role_name')];
 
         $permissions = [];
         foreach ($userRoles as $userRole) {
@@ -73,9 +75,9 @@ class ConfigPermissionHandler implements PermissionHandler
         if (!is_string($role)) {
             throw new \InvalidArgumentException('Role has to be a string');
         }
-        
+
         if (!isset($this->permissions['roles'][$role])) {
-            $this->log->critical("There are no roles assigned to role {$role}");
+            $this->log->critical("There are no permissions assigned to role {$role}");
 
             return [];
         }
