@@ -45,12 +45,12 @@ class Permission implements Permissionable
     /**
      * Verify if resource has all given permissions (alias for canAll)
      *
-     * @param Roleable $resource
+     * @param Roleable|null $resource
      * @param string|array $permissions
      *
      * @return bool
      */
-    public function can(Roleable $resource, $permissions)
+    public function can(Roleable $resource = null, $permissions)
     {
         return $this->canAll($resource, $permissions);
     }
@@ -58,12 +58,12 @@ class Permission implements Permissionable
     /**
      * Verify if resource has all given permissions
      *
-     * @param Roleable $resource
+     * @param Roleable|null $resource
      * @param string|array $permissions
      *
      * @return bool
      */
-    public function canAll(Roleable $resource, $permissions)
+    public function canAll(Roleable $resource = null, $permissions)
     {
         $permissions = (array)$permissions;
 
@@ -81,12 +81,12 @@ class Permission implements Permissionable
     /**
      * Verify if resource has any given permission
      *
-     * @param Roleable $resource
+     * @param Roleable|null $resource
      * @param string|array $permissions
      *
      * @return bool
      */
-    public function canAny(Roleable $resource, $permissions)
+    public function canAny(Roleable $resource = null, $permissions)
     {
         $permissions = (array)$permissions;
 
@@ -104,11 +104,11 @@ class Permission implements Permissionable
     /**
      * Get resource permissions
      *
-     * @param Roleable $resource
+     * @param Roleable|null $resource
      *
      * @return array
      */
-    public function getPermissions(Roleable $resource)
+    public function getPermissions(Roleable $resource = null)
     {
         return $this->handler->getPermissions($resource);
     }

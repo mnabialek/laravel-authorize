@@ -3,11 +3,13 @@
 namespace Mnabialek\LaravelAuthorize\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
+use Mnabialek\LaravelAuthorize\Contracts\Roleable;
 
 class Authorize
 {
@@ -27,17 +29,28 @@ class Authorize
     protected $router;
 
     /**
+     * @var Gate
+     */
+    protected $gate;
+
+    /**
      * Authorize constructor.
      *
      * @param Guard $auth
      * @param Config $config
      * @param Router $router
+     * @param Gate $gate
      */
-    public function __construct(Guard $auth, Config $config, Router $router)
-    {
+    public function __construct(
+        Guard $auth,
+        Config $config,
+        Router $router,
+        Gate $gate
+    ) {
         $this->auth = $auth;
         $this->config = $config;
         $this->router = $router;
+        $this->gate = $gate;
     }
 
     /**
@@ -53,31 +66,28 @@ class Authorize
         list($controller, $action) = $this->getControllerAndAction();
         $bindings = $this->getBindings();
 
-        $authorized = true;
+        $authorized = false;
 
-        if (!$this->auth->check()) {
-            $authorized = false;
-        }
+        /** @var Roleable $user */
+        $user = $this->auth->user();
 
-        if ($authorized) {
-            $user = $this->auth->user();
+        $args = func_get_args();
 
-            $args = func_get_args();
+        if (count($args) > 2) {
+            // Role based authorization
+            $roles = $this->getAllowedRoles(array_slice($args, 2));
 
-            if (count($args) > 2) {
-                // Role based authorization
-                $roles = $this->getAllowedRoles(array_slice($args, 2));
-
-                if (!$user->hasRole($roles)) {
-                    $authorized = false;
-                }
-            } else {
-                // Permission based authorization
-                if (!$user->can($action,
-                    array_merge([$controller], $bindings))
-                ) {
-                    $authorized = false;
-                }
+            if (!$user && in_array($this->getGuestRole(), $roles)) {
+                $authorized = true;
+            } elseif ($user && $user->hasRole($roles)) {
+                $authorized = true;
+            }
+        } else {
+            // Permission based authorization
+            if ($this->gate->forUser($user)->check($action,
+                array_merge([$controller], $bindings))
+            ) {
+                $authorized = true;
             }
         }
 
@@ -90,6 +100,16 @@ class Authorize
         }
 
         return $next($request);
+    }
+
+    /**
+     * Get guest role name
+     *
+     * @return string
+     */
+    protected function getGuestRole()
+    {
+        return $this->config->get('authorize.guest_role_name');
     }
 
     /**

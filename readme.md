@@ -80,7 +80,9 @@ You can use this module in applications using **Laravel** framework in version *
 
 ## Getting started
 
-This module allows you to protect your routes with `authorize` middleware. You have 2 ways to use this middleware (you can use both in same application) - either based on `roles` or based on `permissions`
+This module allows you to protect your routes with `authorize` middleware. You have 2 ways to use this middleware (you can use both in same application) - either based on `roles` or based on `permissions`.
+
+Using this module you can set permissions both for authorized and not-authorized users to keep authorization layer consistent. 
 
 ### 1. Role based authorization 
 
@@ -96,8 +98,7 @@ If you use middleware without any arguments for example `authorize`, it will tak
 
 #### Configuration
 
-Open `config/authorize.php` and in `super_roles` put roles name for which you allow everything so no extra checks will be made. In most cases it's reasonable to put here `admin` role but in some cases you might want to leave this empty if you want to run mode detailed rules. Put all roles you use in your application into `roles` section of `permissions` section.
- 
+Open `config/authorize.php` and in `super_roles` put roles name for which you allow everything so no extra checks will be made. In most cases it's reasonable to put here `admin` role but in some cases you might want to leave this empty if you want to run mode detailed rules. Put all roles you use in your application into `roles` section of `permissions` section. 
  
 #### Protecting your controllers
   
@@ -164,7 +165,8 @@ By default as previously showed, you can create very simple policy class for you
   
 Default flow for authorization verification looks like this:
 
-- if user has super role (you can configure them in `super_roles` section in `config/authorize.php`) it will have permission for anything and no custom methods will be run
+- if user is not logged it will be applied for him role set as value for `guest_role_name` (by default `anonymous`)
+- if user has super role (you can configure them in `super_roles` section in `config/authorize.php`) it will have permission for anything and no custom methods will be run 
 - if user does not have necessary permission, no further checks will be made
 - if user has necessary permission, we verify if there are custom method in Policy for ability (the method name should match the method name from controller). If there's not, user will be allowed to run this action
 - however if there is custom method in Policy for ability, whether user can run this action or not will depend on result of custom method for this ability.
@@ -197,7 +199,19 @@ public function show($user, $displayedUser, $type)
     
 And now this extra method will be used after verification if user has `user.show` permission. Because in above case we assume we have admin role in `super_roles` that's it what we need to use here.
     
-Of course, in addition, you could use here also `$type` parameter or also request parameters (in case they should affect authorization) using `getRequest()` method or using property `$request` directly.    
+Of course, in addition, you could use here also `$type` parameter or also request parameters (in case they should affect authorization) using `getRequest()` method or using property `$request` directly. 
+   
+Be aware that in above example we assume `$user` is User object. However in case we allow this route also for unauthorized user, we should modify the code to handle also such situation. Let's assume we would like to allow unauthorized user access to see any user and for authorized only their own profile. In such case, we should alter code of the method like so:   
+
+```php
+public function show($user, $displayedUser, $type)
+{
+  if (!$user || $displayedUser->id == $user->id) {
+      return true;
+  }
+  return false;
+}
+```
  
 ## Customization
 

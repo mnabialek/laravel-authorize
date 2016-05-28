@@ -55,6 +55,32 @@ class Gate extends \Illuminate\Auth\Access\Gate
     }
 
     /**
+     * Get the raw result for the given ability for the current user.
+     *
+     * @param  string  $ability
+     * @param  array|mixed  $arguments
+     * @return mixed
+     */
+    protected function raw($ability, $arguments = [])
+    {
+        // here we don't fail in case user is not logged, we want to allow
+        // verify unauthorized user permissions 
+        $user = $this->resolveUser();
+
+        $arguments = is_array($arguments) ? $arguments : [$arguments];
+
+        if (is_null($result = $this->callBeforeCallbacks($user, $ability, $arguments))) {
+            $result = $this->callAuthCallback($user, $ability, $arguments);
+        }
+
+        $this->callAfterCallbacks(
+            $user, $ability, $arguments, $result
+        );
+
+        return $result;
+    }
+
+    /**
      * Get policy arguments
      *
      * @param array $arguments
