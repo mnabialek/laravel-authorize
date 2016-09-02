@@ -87,7 +87,7 @@ class ConfigPermissionHandler implements PermissionHandler
         // for some roles (probably admin) we allow to specify only asterisk as
         // permission and in this case we will use all available permissions
         if (count($permissions) == 1 && $permissions[0] == '*') {
-            return $this->permissions['all'];
+            return $this->permissions['available'];
         }
 
         return $permissions;
