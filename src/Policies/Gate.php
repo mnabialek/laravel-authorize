@@ -2,8 +2,6 @@
 
 namespace Mnabialek\LaravelAuthorize\Policies;
 
-use Illuminate\Support\Str;
-
 class Gate extends \Illuminate\Auth\Access\Gate
 {
     /**
@@ -12,45 +10,41 @@ class Gate extends \Illuminate\Auth\Access\Gate
      * @param  \Illuminate\Contracts\Auth\Authenticatable $user
      * @param  string $ability
      * @param  array $arguments
+     * @param  mixed $policy
      *
      * @return callable
      */
-    protected function resolvePolicyCallback($user, $ability, array $arguments)
+    protected function resolvePolicyCallback($user, $ability, array $arguments, $policy)
     {
-        return function () use ($user, $ability, $arguments) {
-            $instance = $this->getPolicyFor($arguments[0]);
-            
-            if (method_exists($instance, 'before')) {
-                // We will prepend the user and ability onto the arguments so that the before
-                // callback can determine which ability is being called. Then we will call
-                // into the policy before methods with the arguments and get the result.
-                $beforeArguments = array_merge([$user, $ability],
-                    $this->getPolicyArguments($arguments));
-
-                $result = call_user_func_array(
-                    [$instance, 'before'], $beforeArguments
-                );
-
-                // If we received a non-null result from the before method, we will return it
-                // as the result of a check. This allows developers to override the checks
-                // in the policy and return a result for all rules defined in the class.
-                if (!is_null($result)) {
-                    return $result;
-                }
-            }
-
-            if (strpos($ability, '-') !== false) {
-                $ability = Str::camel($ability);
-            }
-
-            if (!is_callable([$instance, $ability])) {
-                return false;
-            }
-
-            return call_user_func_array(
-                [$instance, $ability], array_merge([$user],
-                    $this->getPolicyArguments($arguments))
+        return function () use ($user, $ability, $arguments, $policy) {
+            // This callback will be responsible for calling the policy's before method and
+            // running this policy method if necessary. This is used to when objects are
+            // mapped to policy objects in the user's configurations or on this class.
+            $result = $this->callPolicyBefore(
+                $policy, $user, $ability, $this->getPolicyArguments($arguments)
             );
+
+            // When we receive a non-null result from this before method, we will return it
+            // as the "final" results. This will allow developers to override the checks
+            // in this policy to return the result for all rules defined in the class.
+            if (! is_null($result)) {
+                return $result;
+            }
+
+            $ability = $this->formatAbilityToMethod($ability);
+
+            // If this first argument is a string, that means they are passing a class name
+            // to the policy. We will remove the first argument from this argument array
+            // because this policy already knows what type of models it can authorize.
+            $arguments = $this->getPolicyArguments($arguments);
+
+            if (isset($arguments[0]) && is_string($arguments[0])) {
+                array_shift($arguments);
+            }
+
+            return is_callable([$policy, $ability])
+                ? $policy->{$ability}($user, ...$arguments)
+                : false;
         };
     }
 
@@ -64,15 +58,25 @@ class Gate extends \Illuminate\Auth\Access\Gate
     protected function raw($ability, $arguments = [])
     {
         // here we don't fail in case user is not logged, we want to allow
-        // verify unauthorized user permissions 
+        // verify unauthorized user permissions
         $user = $this->resolveUser();
 
-        $arguments = is_array($arguments) ? $arguments : [$arguments];
+        $arguments = array_wrap($arguments);
 
-        if (is_null($result = $this->callBeforeCallbacks($user, $ability, $arguments))) {
+        // First we will call the "before" callbacks for the Gate. If any of these give
+        // back a non-null response, we will immediately return that result in order
+        // to let the developers override all checks for some authorization cases.
+        $result = $this->callBeforeCallbacks(
+            $user, $ability, $arguments
+        );
+
+        if (is_null($result)) {
             $result = $this->callAuthCallback($user, $ability, $arguments);
         }
 
+        // After calling the authorization callback, we will call the "after" callbacks
+        // that are registered with the Gate, which allows a developer to do logging
+        // if that is required for this application. Then we'll return the result.
         $this->callAfterCallbacks(
             $user, $ability, $arguments, $result
         );

@@ -3,13 +3,15 @@ Laravel Authorize
 
 This module makes managing user access to different parts of **Laravel** applications easier. You can protect your routes with `authorize` middleware based on **user roles or user permissions** without adding any extra code to your controller to keep them as clean as no authorization were used at all.
 
-You can use this module in applications using **Laravel** framework in version **>=5.1**.
+## Supported versions
+
+To install in Laravel **5.4+** use this branch, however to install in Laravel >= 5.1 and Laravel < 5.4 please refer to [version 1.1](https://github.com/mnabialek/laravel-authorize/tree/1.1).
 
 ## Installation
 
 1. Run
    ```php   
-   composer require mnabialek/laravel-authorize
+   composer require mnabialek/laravel-authorize 1.2.*
    ```     
    in console to install this module
    

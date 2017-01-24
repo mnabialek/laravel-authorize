@@ -5,7 +5,7 @@ namespace Mnabialek\LaravelAuthorize\Contracts;
 interface Roleable
 {
     /**
-     * Verify whether object has assigned given role (or any of given roles if 
+     * Verify whether object has assigned given role (or any of given roles if
      * array or roles given)
      *
      * @param string|array $roles
