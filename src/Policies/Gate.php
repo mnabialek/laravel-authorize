@@ -32,15 +32,7 @@ class Gate extends \Illuminate\Auth\Access\Gate
             }
 
             $ability = $this->formatAbilityToMethod($ability);
-
-            // If this first argument is a string, that means they are passing a class name
-            // to the policy. We will remove the first argument from this argument array
-            // because this policy already knows what type of models it can authorize.
             $arguments = $this->getPolicyArguments($arguments);
-
-            if (isset($arguments[0]) && is_string($arguments[0])) {
-                array_shift($arguments);
-            }
 
             return is_callable([$policy, $ability])
                 ? $policy->{$ability}($user, ...$arguments)
