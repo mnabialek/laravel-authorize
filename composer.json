@@ -3,7 +3,7 @@
     "description": "Allows authorize user based on role or permission",
     "keywords": ["laravel", "authorize", "authorization", "role","permission"],    
     "require": {
-        "laravel/framework": "~5.4.*"
+        "laravel/framework": "~5.4"
     },
     "license": "MIT",
     "authors": [
